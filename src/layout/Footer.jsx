@@ -11,16 +11,19 @@ const navigation = [
 
 function Footer() {
   return (
-    <div className="bg-emerald-900 py-20">
+    <div className="bg-emerald-900 py-20" dir="rtl">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col items-center gap-10 md:flex-row md:items-start md:justify-between">
+          {/* Logo */}
           <Link to="/">
-            <div className="flex items-center h-16 w-16 gap-2">
-              <img src={logo} alt="App Logo" />
+            <div className="flex items-center gap-2">
+              <img src={logo} alt="App Logo" className="h-12 w-12" />
               <span className="text-white text-2xl font-bold">آجرنا</span>
             </div>
           </Link>
-          <div className="grid grid-cols-1 items-center gap-2">
+
+          {/* Links */}
+          <div className="flex flex-col items-center gap-2 md:items-start">
             <span className="text-white text-xl font-bold mb-4">
               روابط سريعة
             </span>
@@ -28,22 +31,23 @@ function Footer() {
               <Link
                 key={item.name}
                 to={item.href}
-                className="text-white text-xl "
+                className="text-white text-lg hover:underline"
               >
                 {item.name}
               </Link>
             ))}
           </div>
-          <div className="flex flex-col items-start gap-5 w-1/3">
-            <span className="text-white text-lg">
+
+          {/* About */}
+          <div className="flex flex-col items-center gap-5 md:items-start md:w-1/3 text-center md:text-right">
+            <span className="text-white text-lg leading-relaxed">
               آجرنا هو موقع إسلامي شامل يهدف إلى مساعدة المسلمين على التقرب إلى
               الله من خلال توفير القرآن الكريم كاملًا، والأحاديث النبوية
               الصحيحة، ومواقيت الصلاة بدقة حسب الموقع. يقدم الموقع تجربة بسيطة
               وسهلة الاستخدام تناسب جميع الأعمار، مع تصميم هادئ يراعي روحانية
-              المحتوى. نسعى لأن يكون الموقع رفيقًا يوميًا للمسلم في عبادته
-              وذكره.
+              المحتوى.
             </span>
-            <span className="text-white text-lg ">
+            <span className="text-white text-lg">
               آجرنا © {new Date().getFullYear()}
             </span>
           </div>

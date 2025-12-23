@@ -43,7 +43,7 @@ export default function Navbar() {
           </div>
 
           {/* Desktop menu */}
-          <div className="hidden sm:block">
+          <div className="hidden sm:block ">
             <div className="flex space-x-reverse space-x-2">
               {navigation.map((item) => (
                 <Link
@@ -70,7 +70,7 @@ export default function Navbar() {
               as={Link}
               to={item.href}
               className={classNames(
-                "text-white rounded-md px-3 py-2 text-sm font-medium transition"
+                "text-white rounded-md flex flex-col px-3 py-2 text-sm font-medium transition"
               )}
             >
               {item.name}
