@@ -3,191 +3,155 @@ import { Link } from "react-router-dom";
 import {
   Play,
   Pause,
-  Bookmark,
-  Copy,
   ZoomIn,
   ZoomOut,
   ArrowRight,
-  Info,
+  Settings2,
 } from "lucide-react";
 import fatihaData from "../assets/fatiha.json";
 
 const SurahReading = () => {
-  const [fontSize, setFontSize] = useState(24);
+  const [fontSize, setFontSize] = useState(28);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [activeVerse, setActiveVerse] = useState(null);
-  const [bookmarks, setBookmarks] = useState([]);
+  const [showSettings, setShowSettings] = useState(false);
 
   const surah = fatihaData;
 
-  const increaseFontSize = () => setFontSize((prev) => Math.min(prev + 4, 48));
-  const decreaseFontSize = () => setFontSize((prev) => Math.max(prev - 4, 16));
-
-  const toggleBookmark = (verseId) => {
-    setBookmarks((prev) =>
-      prev.includes(verseId)
-        ? prev.filter((b) => b !== verseId)
-        : [...prev, verseId]
-    );
-  };
-
-  const copyVerse = (text) => {
-    navigator.clipboard.writeText(text);
-  };
+  const increaseFontSize = () => setFontSize((prev) => Math.min(prev + 4, 64));
+  const decreaseFontSize = () => setFontSize((prev) => Math.max(prev - 4, 20));
 
   return (
-    <div className="min-h-screen bg-white py-8 px-4 sm:px-6 lg:px-8" dir="rtl">
-      <div className="max-w-4xl mx-auto">
-        {/* Header Navigation */}
-        <div className="flex items-center justify-between mb-8">
+    <div
+      className="min-h-screen bg-[#fcfdfb] py-8 px-4 sm:px-6 lg:px-8 font-amiri"
+      dir="rtl"
+    >
+      <div className="max-w-3xl mx-auto">
+        {/* Top Navigation */}
+        <div className="flex items-center justify-between mb-12">
           <Link
             to="/quran"
-            className="flex items-center gap-2 text-emerald-700 hover:text-emerald-800 transition-colors"
+            className="group flex items-center gap-2 text-emerald-800/70 hover:text-emerald-800 transition-all"
           >
-            <ArrowRight size={20} />
-            <span>العودة للمصحف</span>
+            <div className="w-8 h-8 rounded-full border border-emerald-100 flex items-center justify-center group-hover:bg-emerald-50 transition-colors">
+              <ArrowRight size={18} />
+            </div>
+            <span className="font-medium">رجوع</span>
           </Link>
-          <div className="flex items-center gap-4 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-100">
+
+          <div className="flex items-center gap-2">
             <button
-              onClick={decreaseFontSize}
-              className="p-1 hover:bg-emerald-100 rounded-full text-emerald-700 transition-colors"
+              onClick={() => setIsPlaying(!isPlaying)}
+              className="flex items-center gap-2 px-5 py-2.5 bg-emerald-700 text-white rounded-full hover:bg-emerald-800 transition-all shadow-sm hover:shadow-md active:scale-95"
             >
-              <ZoomOut size={18} />
+              {isPlaying ? (
+                <Pause size={18} />
+              ) : (
+                <Play size={18} fill="currentColor" />
+              )}
+              <span className="font-medium text-sm">تشغيل السورة</span>
             </button>
-            <span className="text-emerald-800 font-medium">حجم الخط</span>
             <button
-              onClick={increaseFontSize}
-              className="p-1 hover:bg-emerald-100 rounded-full text-emerald-700 transition-colors"
+              onClick={() => setShowSettings(!showSettings)}
+              className={`p-2.5 rounded-full border transition-all ${
+                showSettings
+                  ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                  : "border-emerald-100 text-emerald-800/60 hover:bg-emerald-50"
+              }`}
             >
-              <ZoomIn size={18} />
+              <Settings2 size={20} />
             </button>
           </div>
         </div>
 
-        {/* Surah Info Card */}
-        <div className="bg-emerald-900 text-white rounded-3xl p-8 mb-12 text-center shadow-lg relative overflow-hidden">
-          <div className="relative z-10">
-            <h1 className="text-5xl font-bold mb-4 font-arabic">
-              سورة {surah.name}
-            </h1>
-            <div className="flex items-center justify-center gap-6 text-emerald-100">
-              <span className="flex items-center gap-2">
-                <Info size={16} />
-                {surah.type}
+        {/* Settings Panel (Animated-like appearance) */}
+        {showSettings && (
+          <div className="mb-8 p-6 bg-white border border-emerald-100 rounded-2xl shadow-sm flex items-center justify-center gap-8 animate-in fade-in slide-in-from-top-4 duration-300">
+            <div className="flex items-center gap-4">
+              <span className="text-emerald-900/60 text-sm font-medium">
+                حجم الخط:
               </span>
-              <span className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></div>
-                {surah.verses_count} آيات
-              </span>
+              <div className="flex items-center gap-2 bg-emerald-50/50 p-1 rounded-xl border border-emerald-100">
+                <button
+                  onClick={decreaseFontSize}
+                  className="p-2 hover:bg-white hover:text-emerald-700 rounded-lg transition-all text-emerald-800/40"
+                  title="تصغير"
+                >
+                  <ZoomOut size={18} />
+                </button>
+                <div className="w-10 text-center font-bold text-emerald-800">
+                  {Math.round((fontSize / 28) * 100)}%
+                </div>
+                <button
+                  onClick={increaseFontSize}
+                  className="p-2 hover:bg-white hover:text-emerald-700 rounded-lg transition-all text-emerald-800/40"
+                  title="تكبير"
+                >
+                  <ZoomIn size={18} />
+                </button>
+              </div>
             </div>
           </div>
-          {/* Decorative background element */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-emerald-800 rounded-full blur-3xl opacity-20 pointer-events-none"></div>
+        )}
+
+        {/* Surah Title */}
+        <div className="text-center mb-16 relative">
+          <div className="absolute inset-0 flex items-center justify-center -z-10 opacity-[0.03]">
+            <div className="w-48 h-48 border-12 border-emerald-900 rounded-full rotate-45"></div>
+          </div>
+          <h1 className="text-6xl font-bold text-emerald-900 mb-2 font-quran tracking-wide">
+            {surah.name}
+          </h1>
+          <div className="w-24 h-1 bg-linear-to-r from-transparent via-emerald-600 to-transparent mx-auto rounded-full"></div>
         </div>
 
         {/* Bismillah */}
-        {surah.id !== 1 && surah.id !== 9 && (
+        {surah.id !== 9 && (
           <div className="text-center mb-12">
-            <p className="text-3xl font-arabic text-emerald-900 opacity-90">
+            <p className="text-4xl font-quran text-emerald-900 leading-relaxed">
               بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
             </p>
           </div>
         )}
 
-        {/* Verses Container */}
-        <div className="space-y-8 pb-24">
-          {surah.verses.map((verse) => (
-            <div
-              key={verse.id}
-              className={`p-6 rounded-2xl transition-all duration-300 ${
-                activeVerse === verse.id
-                  ? "bg-emerald-50 ring-1 ring-emerald-200"
-                  : "hover:bg-gray-50"
-              }`}
-            >
-              <div className="flex flex-col gap-6">
-                <div className="flex items-start justify-between">
-                  {/* Verse Number Badge */}
-                  <div className="shrink-0 w-10 h-10 border-2 border-emerald-100 rounded-full flex items-center justify-center text-emerald-700 font-bold text-sm">
-                    {verse.id}
-                  </div>
+        {/* Main Reading Container */}
+        <div className="relative bg-white/50 backdrop-blur-sm border border-emerald-100/50 rounded-4xl p-8 md:p-12 shadow-[0_20px_50px_rgba(6,95,70,0.05)]">
+          <div className="quran-text" style={{ fontSize: `${fontSize}px` }}>
+            {surah.verses.map((verse, index) => (
+              <span
+                key={verse.id}
+                className="inline group transition-colors hover:text-emerald-700"
+              >
+                {/* Remove Bismillah from first verse if it's already shown separately and it's there in text */}
+                {/* For Fatiha, the first verse IS Bismillah. So we handle that logic. */}
+                {index === 0 &&
+                verse.text.includes("بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ") &&
+                surah.id !== 9
+                  ? verse.text
+                      .replace("بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ", "")
+                      .trim()
+                  : verse.text}
+                <span className="verse-marker mx-3 shadow-sm border-emerald-200 group-hover:border-emerald-400 group-hover:bg-emerald-100/50 transition-all font-sans">
+                  {verse.id}
+                </span>{" "}
+              </span>
+            ))}
+          </div>
 
-                  {/* Verse Actions */}
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => {
-                        setActiveVerse(
-                          verse.id === activeVerse && isPlaying
-                            ? null
-                            : verse.id
-                        );
-                        setIsPlaying(
-                          verse.id === activeVerse && isPlaying ? false : true
-                        );
-                      }}
-                      className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                      title="استماع"
-                    >
-                      {activeVerse === verse.id && isPlaying ? (
-                        <Pause size={20} />
-                      ) : (
-                        <Play size={20} />
-                      )}
-                    </button>
-                    <button
-                      onClick={() => copyVerse(verse.text)}
-                      className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                      title="نسخ"
-                    >
-                      <Copy size={20} />
-                    </button>
-                    <button
-                      onClick={() => toggleBookmark(verse.id)}
-                      className={`p-2 rounded-lg transition-colors ${
-                        bookmarks.includes(verse.id)
-                          ? "bg-emerald-100 text-emerald-800"
-                          : "text-emerald-600 hover:bg-emerald-50"
-                      }`}
-                      title="حفظ"
-                    >
-                      <Bookmark
-                        size={20}
-                        fill={
-                          bookmarks.includes(verse.id) ? "currentColor" : "none"
-                        }
-                      />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Verse Text */}
-                <p
-                  className="text-emerald-950 leading-loose font-arabic text-right px-2"
-                  style={{ fontSize: `${fontSize}px` }}
-                >
-                  {verse.text}
-                </p>
-              </div>
-            </div>
-          ))}
+          {/* Decorative Corner Elements */}
+          <div className="absolute top-6 left-6 w-12 h-12 border-t-2 border-l-2 border-emerald-900/10 rounded-tl-2xl pointer-events-none"></div>
+          <div className="absolute top-6 right-6 w-12 h-12 border-t-2 border-r-2 border-emerald-900/10 rounded-tr-2xl pointer-events-none"></div>
+          <div className="absolute bottom-6 left-6 w-12 h-12 border-b-2 border-l-2 border-emerald-900/10 rounded-bl-2xl pointer-events-none"></div>
+          <div className="absolute bottom-6 right-6 w-12 h-12 border-b-2 border-r-2 border-emerald-900/10 rounded-br-2xl pointer-events-none"></div>
         </div>
 
-        {/* Floating Controls */}
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-white shadow-2xl border border-emerald-100 px-8 py-4 rounded-full flex items-center gap-6 z-50">
-          <button
-            onClick={() => setIsPlaying(!isPlaying)}
-            className="w-12 h-12 bg-emerald-700 text-white rounded-full flex items-center justify-center hover:bg-emerald-800 transition-colors shadow-lg"
-          >
-            {isPlaying ? (
-              <Pause size={24} />
-            ) : (
-              <Play size={24} fill="currentColor" />
-            )}
-          </button>
-          <div className="h-8 w-px bg-emerald-100"></div>
-          <p className="text-emerald-900 font-medium whitespace-nowrap">
-            مشغل السورة بالكامل
-          </p>
+        {/* Footer info */}
+        <div className="mt-16 text-center text-emerald-800/40 text-sm font-medium">
+          <p>صدق الله العظيم</p>
+          <div className="flex items-center justify-center gap-4 mt-4">
+            <div className="h-px w-12 bg-emerald-100"></div>
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-200"></div>
+            <div className="h-px w-12 bg-emerald-100"></div>
+          </div>
         </div>
       </div>
     </div>

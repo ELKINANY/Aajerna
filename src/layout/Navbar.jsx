@@ -2,82 +2,91 @@ import {
   Disclosure,
   DisclosureButton,
   DisclosurePanel,
+  Transition,
 } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Link } from "react-router-dom";
+import { Fragment } from "react";
 import logo from "../assets/Logos/App_Logo.png";
 
 const navigation = [
-  { name: "القرآن الكريم", href: "/quran", current: false },
-  { name: "الأحاديث", href: "/hadith", current: false },
-  { name: "مواقيت الصلاة", href: "/prayer-times", current: false },
-  { name: "القبلة", href: "/qibla", current: false },
-  { name: "الأذكار", href: "/azkar", current: false },
+  { name: "القرآن الكريم", href: "/quran" },
+  { name: "حديث اليوم", href: "/hadith" },
+  { name: "مواقيت الصلاة", href: "/prayer-times" },
+  { name: "القبلة", href: "/qibla" },
+  { name: "الأذكار", href: "/azkar" },
 ];
-
-function classNames(...classes) {
-  return classes.filter(Boolean).join(" ");
-}
 
 export default function Navbar() {
   return (
     <Disclosure as="nav" className="bg-emerald-900">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
-          {/* Mobile button */}
-          <div className="flex items-center sm:hidden">
-            <DisclosureButton className="group inline-flex items-center justify-center rounded-md p-2 text-white hover:bg-emerald-800">
-              <Bars3Icon className="block h-6 w-6 group-data-open:hidden" />
-              <XMarkIcon className="hidden h-6 w-6 group-data-open:block" />
-            </DisclosureButton>
-          </div>
-
-          {/* Logo */}
-          <div className="flex items-center">
-            <Link to="/" className="flex items-center gap-2">
-              <img src={logo} alt="App Logo" className="h-8 w-auto" />
-              <span className="text-xl font-bold text-white tracking-wide">
-                آجرنا
-              </span>
-            </Link>
-          </div>
-
-          {/* Desktop menu */}
-          <div className="hidden sm:block ">
-            <div className="flex space-x-reverse space-x-2">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={classNames(
-                    "text-white rounded-md px-3 py-2 text-sm font-medium transition"
+      {({ open }) => (
+        <>
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex h-16 items-center justify-between">
+              {/* Mobile menu icon — LEFT */}
+              <div className="flex items-center sm:hidden">
+                <DisclosureButton className="inline-flex items-center justify-center rounded-md p-2 text-white transition hover:bg-emerald-800">
+                  {open ? (
+                    <XMarkIcon className="h-6 w-6" />
+                  ) : (
+                    <Bars3Icon className="h-6 w-6" />
                   )}
-                >
-                  {item.name}
+                </DisclosureButton>
+              </div>
+
+              {/* Logo — RIGHT on mobile / LEFT on desktop */}
+              <div className="flex flex-1 justify-end sm:justify-start items-center">
+                <Link to="/" className="flex items-center gap-2">
+                  <img src={logo} alt="App Logo" className="h-8 w-auto" />
+                  <span className="text-xl font-bold text-white">آجرنا</span>
                 </Link>
-              ))}
+              </div>
+
+              {/* Desktop menu */}
+              <div className="hidden sm:block">
+                <div className="flex space-x-4 space-x-reverse">
+                  {navigation.map((item) => (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      className="rounded-md px-3 py-2 text-sm font-medium text-white transition hover:bg-emerald-800"
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Mobile menu */}
-      <DisclosurePanel className="sm:hidden">
-        <div className="space-y-1 px-2 pt-2 pb-3">
-          {navigation.map((item) => (
-            <DisclosureButton
-              key={item.name}
-              as={Link}
-              to={item.href}
-              className={classNames(
-                "text-white rounded-md flex flex-col px-3 py-2 text-sm font-medium transition"
-              )}
-            >
-              {item.name}
-            </DisclosureButton>
-          ))}
-        </div>
-      </DisclosurePanel>
+          {/* Mobile menu with transition */}
+          <Transition
+            as={Fragment}
+            enter="transition ease-out duration-300"
+            enterFrom="opacity-0 -translate-y-2"
+            enterTo="opacity-100 translate-y-0"
+            leave="transition ease-in duration-200"
+            leaveFrom="opacity-100 translate-y-0"
+            leaveTo="opacity-0 -translate-y-2"
+          >
+            <DisclosurePanel className="sm:hidden bg-emerald-900">
+              <div className="space-y-1 px-4 pb-4 pt-2">
+                {navigation.map((item) => (
+                  <DisclosureButton
+                    key={item.name}
+                    as={Link}
+                    to={item.href}
+                    className="block rounded-md px-3 py-2 text-base font-medium text-white transition hover:bg-emerald-800"
+                  >
+                    {item.name}
+                  </DisclosureButton>
+                ))}
+              </div>
+            </DisclosurePanel>
+          </Transition>
+        </>
+      )}
     </Disclosure>
   );
 }

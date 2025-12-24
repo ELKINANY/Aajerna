@@ -1,15 +1,15 @@
-import Prayer_Times from "../ui/sections/home/PrayerTimes"
-import Today_Ayah from "../ui/sections/home/TodayAyah"
-import Today_Zekr from "../ui/sections/home/TodayZekr"
+import HomeHero from "../ui/sections/home/HomeHero";
+import HomeFeaturesGrid from "../ui/sections/home/HomeFeaturesGrid";
+import HomeDailyHighlights from "../ui/sections/home/HomeDailyHighlights";
 
 function Home() {
   return (
-    <>
-      <Today_Ayah />
-      <Prayer_Times />
-      <Today_Zekr />
-    </>
-  )
+    <div className="bg-[#fcfdfb]">
+      <HomeHero />
+      <HomeDailyHighlights />
+      <HomeFeaturesGrid />
+    </div>
+  );
 }
 
-export default Home
+export default Home;

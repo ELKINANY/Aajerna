@@ -1,1 +1,23 @@
 @import "tailwindcss";
+
+@theme {
+  --font-amiri: "Amiri", serif;
+  --font-quran: "Scheherazade New", serif;
+}
+
+@layer base {
+  body {
+    @apply antialiased;
+  }
+}
+
+@layer components {
+  .verse-marker {
+    @apply inline-flex items-center justify-center w-8 h-8 rounded-full border border-emerald-200 text-emerald-700 font-bold text-xs mx-1 align-middle bg-emerald-50/50 transition-transform hover:scale-110;
+  }
+
+  .quran-text {
+    @apply leading-[2.5] text-right text-emerald-950 font-quran;
+    text-align-last: center;
+  }
+}
