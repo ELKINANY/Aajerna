@@ -4,6 +4,7 @@ import {
   getSingleSurah,
   getSingleAyah,
   getReciters,
+  getAudio,
 } from "../../service/quranAPI";
 
 export const getAllSurahsAsync = createAsyncThunk(

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { getAllSurahsAsync } from "../redux/slices/quranSlice";
-
+import Loader from "../ui/Loader";
 const QuranList = () => {
   const dispatch = useDispatch();
   const { surahs, loading } = useSelector((state) => state.quran);
@@ -25,11 +25,7 @@ const QuranList = () => {
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   if (loading && surahs.length === 0) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-700"></div>
-      </div>
-    );
+    return <Loader />
   }
 
   return (

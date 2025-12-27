@@ -1,10 +1,31 @@
 import { Link } from "react-router-dom";
-import azkarData from "../assets/azkar.json";
 import { ChevronLeft } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchAzkarAsync } from "../redux/slices/azkarSlice";
+import { useEffect } from "react";
+import Loader from "../ui/Loader";
 
 const AzkarList = () => {
+  const dispatch = useDispatch();
+  let { azkar, loading } = useSelector((state) => state.azkar);
+
+  useEffect(() => {
+    dispatch(fetchAzkarAsync());
+  }, [dispatch]);
+
   // Get unique categories
-  const categories = [...new Set(azkarData.map((item) => item.category))];
+  const categories = [...new Set(azkar.map((item) => item.category))];
+  // Filter categories with number of azkar > 5
+  const filteredCategories = categories.filter((category) => {
+    const categoryAzkar = azkar.filter(
+      (azkar) => azkar.category === category
+    );
+    return categoryAzkar.length > 5;
+  });
+
+  if (loading && azkar.length === 0) {
+    return <Loader />
+  }
 
   return (
     <div
@@ -25,7 +46,7 @@ const AzkarList = () => {
 
         {/* Categories Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {categories.map((category) => (
+          {filteredCategories.map((category) => (
             <Link
               key={category}
               to={`/azkar/${encodeURIComponent(category)}`}
@@ -37,7 +58,10 @@ const AzkarList = () => {
                     {category}
                   </h3>
                   <span className="text-emerald-800/40 text-sm font-sans font-medium">
-                    {azkarData.filter((a) => a.category === category).length}{" "}
+                    {
+                      azkar.filter((a) => a.category === category)
+                        .length
+                    }{" "}
                     ذكراً
                   </span>
                 </div>

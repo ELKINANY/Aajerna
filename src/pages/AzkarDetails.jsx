@@ -1,12 +1,12 @@
 import { useParams, Link } from "react-router-dom";
-import azkarData from "../assets/azkar.json";
-import { ArrowRight, Share2, Copy, Check } from "lucide-react";
+import { ArrowRight, Copy, Check } from "lucide-react";
 import { useState } from "react";
+import { useSelector } from "react-redux";
 
 const AzkarDetails = () => {
   const { category } = useParams();
-  const decodedCategory = decodeURIComponent(category);
-  const items = azkarData.filter((item) => item.category === decodedCategory);
+  const decodedCategory = decodeURIComponent(category);  
+  const items = useSelector((state) => state.azkar.azkar).filter((item) => item.category === decodedCategory);
   const [copiedId, setCopiedId] = useState(null);
 
   const handleCopy = (text, id) => {
@@ -66,19 +66,20 @@ const AzkarDetails = () => {
                       <Copy size={18} />
                     )}
                   </button>
-                  <button className="p-2.5 rounded-xl border border-emerald-50 text-emerald-600 hover:bg-emerald-50 transition-all">
-                    <Share2 size={18} />
-                  </button>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <span className="text-emerald-800/40 text-sm font-medium font-sans">
-                    التكرار
-                  </span>
-                  <div className="w-10 h-10 rounded-full bg-emerald-700 text-white flex items-center justify-center font-bold shadow-sm">
-                    {item.count}
-                  </div>
-                </div>
+                {
+                  item.count && (
+                    <div className="flex items-center gap-3">
+                      <span className="text-emerald-800/40 text-sm font-medium font-sans">
+                        التكرار
+                      </span>
+                      <div className="w-10 h-10 rounded-full bg-emerald-700 text-white flex items-center justify-center font-bold shadow-sm">
+                        {item.count}
+                      </div>
+                    </div>
+                  )
+                }
               </div>
 
               {/* Decorative line */}

@@ -2,15 +2,13 @@ import { useState , useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useDispatch , useSelector } from "react-redux";
 import {
-  Play,
-  Pause,
   ZoomIn,
   ZoomOut,
   ArrowRight,
   Settings2,
 } from "lucide-react";
-import fatihaData from "../assets/fatiha.json";
 import { getSingleSurahAsync } from "../redux/slices/quranSlice";
+import Loader from "../ui/Loader";
 
 const SurahReading = () => {
 
@@ -18,12 +16,9 @@ const SurahReading = () => {
   const { id } = useParams();
 
   const [fontSize, setFontSize] = useState(28);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
   const {surah , loading} = useSelector((state) => state.quran)
-
-  // const surah = fatihaData;
 
   const increaseFontSize = () => setFontSize((prev) => Math.min(prev + 4, 64));
   const decreaseFontSize = () => setFontSize((prev) => Math.max(prev - 4, 20));
@@ -35,12 +30,8 @@ const SurahReading = () => {
     }
   }, [dispatch, id])
 
-   if (loading || !surah.arabic1) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-700"></div>
-      </div>
-    );
+  if (loading || !surah.arabic1) {
+    return <Loader />
   }
 
   return (
@@ -62,17 +53,6 @@ const SurahReading = () => {
           </Link>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsPlaying(!isPlaying)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-emerald-700 text-white rounded-full hover:bg-emerald-800 transition-all shadow-sm hover:shadow-md active:scale-95"
-            >
-              {isPlaying ? (
-                <Pause size={18} />
-              ) : (
-                <Play size={18} fill="currentColor" />
-              )}
-              <span className="font-medium text-sm">تشغيل السورة</span>
-            </button>
             <button
               onClick={() => setShowSettings(!showSettings)}
               className={`p-2.5 rounded-full border transition-all ${
@@ -128,7 +108,7 @@ const SurahReading = () => {
         </div>
 
         {/* Bismillah */}
-        {surah.surahNo !== 9 && (
+        {surah.surahNo !== 9 && surah.surahNo !== 1  && (
           <div className="text-center mb-12">
             <p className="text-4xl font-quran text-emerald-900 leading-relaxed">
               بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
@@ -138,15 +118,13 @@ const SurahReading = () => {
 
         {/* Main Reading Container */}
   
-   <div className="relative bg-white/50 backdrop-blur-sm border border-emerald-100/50 rounded-4xl p-8 md:p-12 shadow-[0_20px_50px_rgba(6,95,70,0.05)]">
+  <div className="relative bg-white/50 backdrop-blur-sm border border-emerald-100/50 rounded-4xl p-8 md:p-12 shadow-[0_20px_50px_rgba(6,95,70,0.05)]">
     <div className="quran-text" style={{ fontSize: `${fontSize}px` }}>
       {surah.arabic1.map((verseText, index) => (
         <span
           key={index + 1}
           className="inline group transition-colors hover:text-emerald-700"
         >
-          {/* Remove Bismillah from first verse if it's already shown separately and it's there in text */}
-          {/* For Fatiha, the first verse IS Bismillah. So we handle that logic. */}
           {index === 0 &&
           verseText.includes("بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ") &&
           surah.surahNo !== 9
