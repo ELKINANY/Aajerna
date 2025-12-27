@@ -4,6 +4,7 @@
   <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black" alt="React 19">
   <img src="https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white" alt="Vite 7">
   <img src="https://img.shields.io/badge/TailwindCSS-4.x-38B2AC?logo=tailwind-css&logoColor=white" alt="Tailwind CSS">
+  <img src="https://img.shields.io/badge/Redux-764ABC?logo=redux&logoColor=white" alt="Redux">
   <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License">
 </p>
 
@@ -32,6 +33,7 @@
 
 - **Core:** [React 19](https://react.dev/) & [Vite](https://vitejs.dev/)
 - **Styling:** [Tailwind CSS 4](https://tailwindcss.com/) (لأسرع وأخف تصميم)
+- **State Management:** [Redux Toolkit](https://redux-toolkit.js.org/)
 - **UI Components:** [Headless UI](https://headlessui.com/)
 - **Icons:** [Lucide React](https://lucide.dev/) & [Heroicons](https://heroicons.com/)
 - **Routing:** [React Router 7](https://reactrouter.com/)
@@ -44,6 +46,7 @@ src/
 ├── components/ # المكونات المشتركة
 ├── layout/     # تخطيط الصفحات (Navbar, Footer)
 ├── pages/      # الصفحات الرئيسية للتطبيق
+├── redux/      # إدارة الحالة (Slices & Store)
 ├── routes/     # إعدادات التنقل
 ├── ui/         # أقسام الواجهة المخصصة
 └── index.css   # التنسيقات العالمية
