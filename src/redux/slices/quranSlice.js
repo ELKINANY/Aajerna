@@ -38,11 +38,20 @@ export const getRecitersAsync = createAsyncThunk(
   }
 );
 
+export const getAudioAsync = createAsyncThunk(
+  "quran/getAudio",
+  async()=> {
+    const response = await getAudio();
+    return response.data;
+  }
+)
+
 const initialState = {
   surahs: [],
   surah: {},
   ayah: {},
   reciters: [],
+  audio:{},
   loading: false,
   error: null,
 };
@@ -67,6 +76,10 @@ const quranSlice = createSlice({
       })
       .addCase(getRecitersAsync.fulfilled, (state, action) => {
         state.reciters = action.payload;
+        state.loading = false;
+      })
+      .addCase(getAudioAsync.fulfilled , (state , action ) => {
+        state.audio = action.payload;
         state.loading = false;
       })
       .addMatcher(

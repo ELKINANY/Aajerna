@@ -25,3 +25,9 @@ export const getSingleAyah = (surahNumber, ayahNumber) => {
 export const getReciters = () => {
   return axios.get(`${API_URL}/reciters.json`);
 }
+
+// Audio 
+// https://quranapi.pages.dev/api/audio/2.json
+export const getAudio = (surahNumber) => {
+  return axios.get(`${API_URL}/audio/${surahNumber}.json`)
+}

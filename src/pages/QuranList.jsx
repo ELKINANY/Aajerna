@@ -46,14 +46,16 @@ const QuranList = () => {
         </div>
 
         <div className="grid gap-6">
-          {currentItems.map((surah) => (
+          {currentItems.map((surah, index) => {
+            const surahNumber = indexOfFirstItem + index + 1;
+            return (
             <div
-              key={surah.id}
+              key={surahNumber}
               className="bg-white rounded-xl shadow-sm border border-emerald-100 p-6 flex flex-col sm:flex-row items-center justify-between hover:shadow-md transition-shadow duration-300 group"
             >
               <div className="flex items-center gap-6 w-full sm:w-auto">
                 <div className="shrink-0 w-14 h-14 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-700 font-bold text-xl group-hover:bg-emerald-100 transition-colors duration-300">
-                  {surah.id}
+                  {surahNumber}
                 </div>
                 <div className="text-right">
                   <h2 className="text-2xl font-bold text-emerald-900 mb-1">
@@ -73,14 +75,14 @@ const QuranList = () => {
 
               <div className="flex items-center gap-4 mt-6 sm:mt-0 w-full sm:w-auto">
                 <Link
-                  to={`/reciters`}
+                  to={`/reciters/${surahNumber}`}
                   className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors duration-300 font-medium"
                 >
                   <Play size={18} fill="currentColor" />
                   <span>استمع</span>
                 </Link>
                 <Link
-                  to={`/quran/${surah.id}`}
+                  to={`/quran/${surahNumber}`}
                   className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 border-2 border-emerald-700 text-emerald-700 rounded-lg hover:bg-emerald-50 transition-colors duration-300 font-medium"
                 >
                   <BookOpen size={18} />
@@ -88,7 +90,8 @@ const QuranList = () => {
                 </Link>
               </div>
             </div>
-          ))}
+          )}
+          )}
         </div>
 
         {/* Pagination UI */}

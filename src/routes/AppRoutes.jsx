@@ -15,7 +15,7 @@ function AppRoutes() {
       <Route path="/" element={<Home />} />
       <Route path="/quran" element={<QuranList />} />
       <Route path="/quran/:id" element={<SurahReading />} />
-      <Route path="/reciters" element={<Reciters />} />
+      <Route path="/reciters/:surahId?" element={<Reciters />} />
       <Route path="/azkar" element={<AzkarList />} />
       <Route path="/azkar/:category" element={<AzkarDetails />} />
       <Route path="/prayer-times" element={<PrayerTimes />} />
