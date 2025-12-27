@@ -4,7 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import AppRoutes from "./routes/AppRoutes";
 
 const App = () => {
-	return (
+  return (
     <BrowserRouter>
       <Navbar />
       <AppRoutes />
