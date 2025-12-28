@@ -6,7 +6,6 @@ import { defineConfig } from "vite";
 export default defineConfig({
 	plugins: [react(), tailwindcss()],
 	server: {
-    allowedHosts: ["39fac67ea18b.ngrok-free.app"],
 		proxy: {
 			'/api': {
 				target: 'https://hadithapi.com',
