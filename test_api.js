@@ -1,1 +1,0 @@
-import axios from 'axios'; axios.get('https://islamicapi.com/api/v1/prayer-time/', { params: { lat: 30.0444, lon: 31.2357, method: 5 } }).then(r => console.log(JSON.stringify(r.data, null, 2))).catch(e => console.log(e.message))
