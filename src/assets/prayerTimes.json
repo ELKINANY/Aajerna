@@ -1,7 +1,0 @@
-[
-  { "id": "fajr", "name": "الفجر", "time": "05:15", "icon": "sunrise" },
-  { "id": "dhuhr", "name": "الظهر", "time": "12:08", "icon": "sun" },
-  { "id": "asr", "name": "العصر", "time": "15:12", "icon": "cloud-sun" },
-  { "id": "maghrib", "name": "المغرب", "time": "17:34", "icon": "sunset" },
-  { "id": "isha", "name": "العشاء", "time": "19:01", "icon": "moon" }
-]

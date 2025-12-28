@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
-import prayerData from "../assets/prayerTimes.json";
+import { useState, useEffect, useMemo } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import Loader from "../ui/Loader";
 import {
   Clock,
   MapPin,
@@ -9,66 +10,160 @@ import {
   Sunset,
   Moon,
   BellRing,
+  AlertCircle,
 } from "lucide-react";
 import backgroundImage from "../assets/images/صلاة-المسلمين.jpg";
+import { fetchPrayerTimesAsync } from "../redux/slices/prayerTimesSlice";
+
+const iconMap = {
+  Fajr: <Sunrise size={24} />,
+  Dhuhr: <Sun size={24} />,
+  Asr: <CloudSun size={24} />,
+  Maghrib: <Sunset size={24} />,
+  Isha: <Moon size={24} />,
+};
+
+const prayerNamesAr = {
+  Fajr: "الفجر",
+  Dhuhr: "الظهر",
+  Asr: "العصر",
+  Maghrib: "المغرب",
+  Isha: "العشاء",
+};
 
 const PrayerTimes = () => {
   const [nextPrayer, setNextPrayer] = useState(null);
   const [countdown, setCountdown] = useState("");
-  const [currentTime, setCurrentTime] = useState(new Date());
 
-  const iconMap = {
-    sunrise: <Sunrise size={24} />,
-    sun: <Sun size={24} />,
-    "cloud-sun": <CloudSun size={24} />,
-    sunset: <Sunset size={24} />,
-    moon: <Moon size={24} />,
-  };
+  const dispatch = useDispatch();
+  const { prayerTimes, loading, error } = useSelector(
+    (state) => state.prayerTimes
+  );
+
+  // Transform prayer times from API to array format
+  const formattedPrayerTimes = useMemo(() => {
+    const timings = prayerTimes?.data?.timings || prayerTimes?.timings;
+    if (!timings) return [];
+
+    const items = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
+
+    return items.map((key) => ({
+      id: key,
+      name: prayerNamesAr[key],
+      time: timings[key],
+      icon: iconMap[key],
+    }));
+  }, [prayerTimes]);
 
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    const calculateNextPrayer = () => {
-      const now = new Date();
-      const currentH = now.getHours();
-      const currentM = now.getMinutes();
-      const currentTotalMinutes = currentH * 60 + currentM;
-
-      let next = null;
-      let minDiff = Infinity;
-
-      prayerData.forEach((prayer) => {
-        const [h, m] = prayer.time.split(":").map(Number);
-        let prayerTotalMinutes = h * 60 + m;
-
-        let diff = prayerTotalMinutes - currentTotalMinutes;
-        if (diff <= 0) diff += 24 * 60; // Next day
-
-        if (diff < minDiff) {
-          minDiff = diff;
-          next = { ...prayer, diff };
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          dispatch(
+            fetchPrayerTimesAsync({
+              lat: position.coords.latitude,
+              lon: position.coords.longitude,
+            })
+          );
+        },
+        (err) => {
+          console.error("Geolocation error:", err);
+          // Fallback to a default location if needed
+          dispatch(fetchPrayerTimesAsync({ lat: 30.0444, lon: 31.2357 })); // Cairo
         }
+      );
+    } else {
+      dispatch(fetchPrayerTimesAsync({ lat: 30.0444, lon: 31.2357 }));
+    }
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (formattedPrayerTimes.length === 0) return;
+
+    const updateNextPrayer = () => {
+      const now = new Date();
+      let found = false;
+
+      // Create full date objects for each prayer time today
+      const todayPrayers = formattedPrayerTimes.map((p) => {
+        const [hours, minutes] = p.time.split(":").map(Number);
+        const prayerDate = new Date();
+        prayerDate.setHours(hours, minutes, 0, 0);
+        return { ...p, date: prayerDate };
       });
 
-      setNextPrayer(next);
+      for (const prayer of todayPrayers) {
+        if (prayer.date > now) {
+          setNextPrayer(prayer);
 
-      // Format countdown
-      const hours = Math.floor(next.diff / 60);
-      const minutes = next.diff % 60;
-      const seconds = 59 - now.getSeconds();
-      setCountdown(
-        `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
-          2,
-          "0"
-        )}:${String(seconds).padStart(2, "0")}`
-      );
+          const diff = prayer.date - now;
+          const h = Math.floor(diff / 3600000);
+          const m = Math.floor((diff % 3600000) / 60000);
+          const s = Math.floor((diff % 60000) / 1000);
+
+          setCountdown(
+            `${h.toString().padStart(2, "0")}:${m
+              .toString()
+              .padStart(2, "0")}:${s.toString().padStart(2, "0")}`
+          );
+          found = true;
+          break;
+        }
+      }
+
+      if (!found) {
+        // If all prayers passed today, next is Fajr tomorrow
+        const fajr = todayPrayers[0];
+        const tomorrowFajr = new Date(fajr.date);
+        tomorrowFajr.setDate(tomorrowFajr.getDate() + 1);
+
+        setNextPrayer({ ...fajr, date: tomorrowFajr });
+
+        const diff = tomorrowFajr - now;
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+
+        setCountdown(
+          `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s
+            .toString()
+            .padStart(2, "0")}`
+        );
+      }
     };
 
-    calculateNextPrayer();
-  }, [currentTime]);
+    updateNextPrayer();
+    const timer = setInterval(updateNextPrayer, 1000);
+    return () => clearInterval(timer);
+  }, [formattedPrayerTimes]);
+
+  const dateInfo = prayerTimes?.data?.date || prayerTimes?.date;
+  const hijriDate = dateInfo?.hijri;
+  const readableHijri = hijriDate
+    ? `${hijriDate.day} ${hijriDate.month.ar} ${hijriDate.year} هـ`
+    : "جاري التحميل...";
+
+  if ((loading || !prayerTimes) && !error) return <Loader />
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#fcfdfb]">
+        <div className="max-w-md p-8 bg-red-50 border border-red-100 rounded-4xl text-center">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-red-900 mb-2 font-amiri">
+            عذراً، حدث خطأ
+          </h2>
+          <p className="text-red-700 font-medium mb-6">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-6 py-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
+          >
+            إعادة المحاولة
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#fcfdfb] font-amiri" dir="rtl">
@@ -83,7 +178,7 @@ const PrayerTimes = () => {
         <div className="relative z-10 text-center text-white px-4">
           <div className="flex items-center justify-center gap-2 text-emerald-100/80 mb-4 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full w-fit mx-auto border border-white/10">
             <MapPin size={16} />
-            <span className="text-sm font-medium">القاهرة، مصر</span>
+            <span className="text-sm font-medium">موقعك الحالي</span>
           </div>
 
           <h1 className="text-4xl md:text-6xl font-bold mb-6 font-quran tracking-wide">
@@ -109,14 +204,14 @@ const PrayerTimes = () => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 md:-mt-16 relative z-20 pb-20">
         {/* Prayer Cards Grid */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
-          {prayerData.map((prayer) => {
+          {formattedPrayerTimes.map((prayer) => {
             const isNext = nextPrayer?.id === prayer.id;
             return (
               <div
                 key={prayer.id}
                 className={`relative group p-6 md:p-8 rounded-4xl border transition-all duration-500 flex flex-col items-center gap-4 ${
                   isNext
-                    ? "bg-emerald-700 border-emerald-500 text-white shadow-[0_20px_40px_rgba(4,120,87,0.3)] scale-105 -translate-y-2 z-10"
+                    ? "bg-emerald-700 border-emerald-50 text-white shadow-[0_20px_40px_rgba(4,120,87,0.3)] scale-105 -translate-y-2 z-10"
                     : "bg-white border-emerald-50 text-emerald-900 shadow-[0_10px_30px_rgba(6,95,70,0.03)] hover:border-emerald-200 hover:shadow-[0_15px_35px_rgba(6,95,70,0.08)]"
                 }`}
               >
@@ -127,7 +222,7 @@ const PrayerTimes = () => {
                       : "bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white"
                   }`}
                 >
-                  {iconMap[prayer.icon]}
+                  {prayer.icon}
                 </div>
 
                 <div className="text-center">
@@ -171,9 +266,7 @@ const PrayerTimes = () => {
               <h4 className="font-bold text-emerald-900 text-lg">
                 التاريخ الهجري
               </h4>
-              <p className="text-emerald-800/60 font-medium">
-                23 جمادى الآخرة 1447 هـ
-              </p>
+              <p className="text-emerald-800/60 font-medium">{readableHijri}</p>
             </div>
           </div>
           <div className="h-px md:h-12 w-full md:w-px bg-emerald-200/50"></div>

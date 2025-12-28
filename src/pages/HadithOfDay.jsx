@@ -10,10 +10,11 @@ import {
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllHadithAsync } from "../redux/slices/hadthSlice";
+import Loader from "../ui/Loader";
 
 const HadithOfDay = () => {
   const dispatch = useDispatch();
-  const { hadiths, loading, error } = useSelector((state) => state.hadith);
+  const { hadiths, loading } = useSelector((state) => state.hadith);
   const [dailyHadith, setDailyHadith] = useState(null);
 
   useEffect(() => {
@@ -21,9 +22,12 @@ const HadithOfDay = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    console.log('Hadiths data:', hadiths);
-    
-    if (hadiths && hadiths.hadiths && hadiths.hadiths.data && hadiths.hadiths.data.length > 0) {
+    if (
+      hadiths &&
+      hadiths.hadiths &&
+      hadiths.hadiths.data &&
+      hadiths.hadiths.data.length > 0
+    ) {
       const now = new Date();
       const start = new Date(now.getFullYear(), 0, 0);
       const diff = now - start;
@@ -33,61 +37,40 @@ const HadithOfDay = () => {
       const hadithsArray = hadiths.hadiths.data;
       const index = dayOfYear % hadithsArray.length;
       const selectedHadith = hadithsArray[index];
-      
-      console.log('Selected hadith:', selectedHadith);
-      console.log('Day of year:', dayOfYear, 'Index:', index);
-      
+
       setDailyHadith(selectedHadith);
     }
   }, [hadiths]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-[#fcfdfb] flex items-center justify-center font-amiri" dir="rtl">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-emerald-800 text-xl">جاري تحميل حديث اليوم...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-[#fcfdfb] flex items-center justify-center font-amiri" dir="rtl">
-        <div className="text-center text-rose-600">
-          <AlertCircle size={48} className="mx-auto mb-4" />
-          <p className="text-xl">حدث خطأ في تحميل الحديث</p>
-        </div>
-      </div>
-    );
+    return <Loader />;
   }
 
   if (!dailyHadith) return null;
 
   const translateGrade = (grade) => {
-    if (!grade) return '';
+    if (!grade) return "";
     const gradeText = grade.toLowerCase();
-    
-    if (gradeText.includes('sahih')) return 'صحيح';
-    if (gradeText.includes('hasan')) return 'حسن';
-    if (gradeText.includes('daif')) return 'ضعيف';
-    if (gradeText.includes('maudu')) return 'موضوع';
-    
+
+    if (gradeText.includes("sahih")) return "صحيح";
+    if (gradeText.includes("hasan")) return "حسن";
+    if (gradeText.includes("daif")) return "ضعيف";
+    if (gradeText.includes("maudu")) return "موضوع";
+
     return grade;
   };
 
   const getGradeStyles = (grade) => {
-    const gradeText = grade?.toLowerCase() || '';
-    
-    if (gradeText.includes('صحيح') || gradeText.includes('sahih')) {
+    const gradeText = grade?.toLowerCase() || "";
+
+    if (gradeText.includes("صحيح") || gradeText.includes("sahih")) {
       return {
         bg: "bg-emerald-100",
         text: "text-emerald-700",
         border: "border-emerald-200",
         icon: <CheckCircle2 size={18} />,
       };
-    } else if (gradeText.includes('حسن') || gradeText.includes('hasan')) {
+    } else if (gradeText.includes("حسن") || gradeText.includes("hasan")) {
       return {
         bg: "bg-amber-100",
         text: "text-amber-700",
@@ -140,7 +123,9 @@ const HadithOfDay = () => {
               {dailyHadith.hadithNarrator && (
                 <div className="flex items-center gap-2 px-5 py-2 bg-emerald-50 text-emerald-800 rounded-full border border-emerald-100/50 text-sm font-bold">
                   <User size={16} />
-                  <span>الراوي: {dailyHadith.hadithNarrator || dailyHadith.narrator}</span>
+                  <span>
+                    الراوي: {dailyHadith.hadithNarrator || dailyHadith.narrator}
+                  </span>
                 </div>
               )}
               {(dailyHadith.status || dailyHadith.grade) && (
@@ -156,7 +141,9 @@ const HadithOfDay = () => {
         </div>
 
         {/* Detailed Sections Grid */}
-        {(dailyHadith.explanation || dailyHadith.story || dailyHadith.englishExplanation) && (
+        {(dailyHadith.explanation ||
+          dailyHadith.story ||
+          dailyHadith.englishExplanation) && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Explanation */}
             {(dailyHadith.explanation || dailyHadith.englishExplanation) && (
@@ -165,7 +152,9 @@ const HadithOfDay = () => {
                   <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
                     <BookOpen size={20} />
                   </div>
-                  <h3 className="text-2xl font-bold font-quran">تفسير الحديث</h3>
+                  <h3 className="text-2xl font-bold font-quran">
+                    تفسير الحديث
+                  </h3>
                 </div>
                 <p className="text-emerald-900/80 leading-loose text-lg font-medium">
                   {dailyHadith.explanation || dailyHadith.englishExplanation}
@@ -195,18 +184,27 @@ const HadithOfDay = () => {
           <div className="mt-12 text-center">
             <div className="inline-flex items-center gap-3 px-8 py-3 bg-white border border-emerald-100 rounded-2xl text-emerald-800/60 shadow-sm text-sm font-bold">
               <BookOpen size={16} />
-              <span>المصدر: {
-                dailyHadith.source || 
-                (dailyHadith.bookSlug === 'sahih-bukhari' ? 'صحيح البخاري' :
-                 dailyHadith.bookSlug === 'sahih-muslim' ? 'صحيح مسلم' :
-                 dailyHadith.bookSlug === 'sunan-abu-dawood' ? 'سنن أبي داود' :
-                 dailyHadith.bookSlug === 'jami-at-tirmidhi' ? 'جامع الترمذي' :
-                 dailyHadith.bookSlug === 'sunan-an-nasai' ? 'سنن النسائي' :
-                 dailyHadith.bookSlug === 'sunan-ibn-majah' ? 'سنن ابن ماجه' :
-                 dailyHadith.bookSlug === 'muwatta-malik' ? 'موطأ مالك' :
-                 dailyHadith.bookSlug === 'musnad-ahmad' ? 'مسند أحمد' :
-                 dailyHadith.bookSlug)
-              }</span>
+              <span>
+                المصدر:{" "}
+                {dailyHadith.source ||
+                  (dailyHadith.bookSlug === "sahih-bukhari"
+                    ? "صحيح البخاري"
+                    : dailyHadith.bookSlug === "sahih-muslim"
+                    ? "صحيح مسلم"
+                    : dailyHadith.bookSlug === "sunan-abu-dawood"
+                    ? "سنن أبي داود"
+                    : dailyHadith.bookSlug === "jami-at-tirmidhi"
+                    ? "جامع الترمذي"
+                    : dailyHadith.bookSlug === "sunan-an-nasai"
+                    ? "سنن النسائي"
+                    : dailyHadith.bookSlug === "sunan-ibn-majah"
+                    ? "سنن ابن ماجه"
+                    : dailyHadith.bookSlug === "muwatta-malik"
+                    ? "موطأ مالك"
+                    : dailyHadith.bookSlug === "musnad-ahmad"
+                    ? "مسند أحمد"
+                    : dailyHadith.bookSlug)}
+              </span>
             </div>
           </div>
         )}

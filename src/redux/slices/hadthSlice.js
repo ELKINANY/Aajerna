@@ -5,8 +5,6 @@ export const getAllHadithAsync = createAsyncThunk(
   "quran/getAllHadith",
   async () => {
     const response = await getAllHadiths();
-    console.log('Full API Response:', response);
-    console.log('Response data:', response.data);
     return response.data;
   }
 );
@@ -29,18 +27,13 @@ const quranSlice = createSlice({
         state.hadiths = action.payload;
         state.loading = false;
       })
-      .addMatcher(
-        (action) => action.type.endsWith("pending"),
-        (state) => {
-          state.loading = true;
-        }
-      )
-      .addMatcher(
-        (action) => action.type.endsWith("rejected"),
-        (state) => {
-          state.loading = false;
-        }
-      );
+      .addCase(getAllHadithAsync.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getAllHadithAsync.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      });
   },
 });
 

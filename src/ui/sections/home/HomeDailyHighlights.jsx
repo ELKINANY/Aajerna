@@ -1,20 +1,27 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  Clock,
-  ScrollText,
-  Sparkles,
-  ChevronLeft,
-  BellRing,
-} from "lucide-react";
-import prayerData from "../../../assets/prayerTimes.json";
+import { ScrollText, Sparkles, ChevronLeft, BellRing } from "lucide-react";
 import { getAllHadithAsync } from "../../../redux/slices/hadthSlice";
+import { fetchPrayerTimesAsync } from "../../../redux/slices/prayerTimesSlice";
+
+const prayerNamesAr = {
+  Fajr: "الفجر",
+  Dhuhr: "الظهر",
+  Asr: "العصر",
+  Maghrib: "المغرب",
+  Isha: "العشاء",
+};
 
 const HomeDailyHighlights = () => {
   const dispatch = useDispatch();
-  const { hadiths, loading } = useSelector((state) => state.hadith);
-  const [dailyHadith, setDailyHadith] = useState(null);
+  const { hadiths, loading: hadithLoading } = useSelector(
+    (state) => state.hadith
+  );
+  const { prayerTimes, error: prayerError } = useSelector(
+    (state) => state.prayerTimes
+  );
+
   const [nextPrayer, setNextPrayer] = useState(null);
   const [countdown, setCountdown] = useState("");
 
@@ -22,8 +29,31 @@ const HomeDailyHighlights = () => {
     dispatch(getAllHadithAsync());
   }, [dispatch]);
 
+  // Fetch prayer times if not available
   useEffect(() => {
-    if (hadiths && hadiths.hadiths && hadiths.hadiths.data && hadiths.hadiths.data.length > 0) {
+    if (!prayerTimes) {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            dispatch(
+              fetchPrayerTimesAsync({
+                lat: position.coords.latitude,
+                lon: position.coords.longitude,
+              })
+            );
+          },
+          () => {
+            dispatch(fetchPrayerTimesAsync({ lat: 30.0444, lon: 31.2357 }));
+          }
+        );
+      } else {
+        dispatch(fetchPrayerTimesAsync({ lat: 30.0444, lon: 31.2357 }));
+      }
+    }
+  }, [dispatch, prayerTimes]);
+
+  const dailyHadith = useMemo(() => {
+    if (hadiths?.hadiths?.data?.length > 0) {
       const now = new Date();
       const start = new Date(now.getFullYear(), 0, 0);
       const diff = now - start;
@@ -32,47 +62,81 @@ const HomeDailyHighlights = () => {
 
       const hadithsArray = hadiths.hadiths.data;
       const index = dayOfYear % hadithsArray.length;
-      setDailyHadith(hadithsArray[index]);
+      return hadithsArray[index];
     }
+    return null;
   }, [hadiths]);
 
+  const formattedPrayerTimes = useMemo(() => {
+    const timings = prayerTimes?.data?.timings || prayerTimes?.timings;
+    if (!timings) return [];
+
+    const items = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
+
+    return items.map((key) => ({
+      id: key,
+      name: prayerNamesAr[key],
+      time: timings[key],
+    }));
+  }, [prayerTimes]);
+
   useEffect(() => {
-    // 2. Setup Prayer Countdown
-    const timer = setInterval(() => {
-      const timeNow = new Date();
-      const currentH = timeNow.getHours();
-      const currentM = timeNow.getMinutes();
-      const currentTotalMinutes = currentH * 60 + currentM;
+    if (formattedPrayerTimes.length === 0) return;
 
-      let next = null;
-      let minDiff = Infinity;
+    const updateNextPrayer = () => {
+      const now = new Date();
+      let found = false;
 
-      prayerData.forEach((prayer) => {
-        const [h, m] = prayer.time.split(":").map(Number);
-        let prayerTotalMinutes = h * 60 + m;
-        let diffMinutes = prayerTotalMinutes - currentTotalMinutes;
-        if (diffMinutes <= 0) diffMinutes += 24 * 60;
-
-        if (diffMinutes < minDiff) {
-          minDiff = diffMinutes;
-          next = { ...prayer, diff: diffMinutes };
-        }
+      const todayPrayers = formattedPrayerTimes.map((p) => {
+        const [hours, minutes] = p.time.split(":").map(Number);
+        const prayerDate = new Date();
+        prayerDate.setHours(hours, minutes, 0, 0);
+        return { ...p, date: prayerDate };
       });
 
-      setNextPrayer(next);
-      const hours = Math.floor(next.diff / 60);
-      const minutes = next.diff % 60;
-      const seconds = 59 - timeNow.getSeconds();
-      setCountdown(
-        `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
-          2,
-          "0"
-        )}:${String(seconds).padStart(2, "0")}`
-      );
-    }, 1000);
+      for (const prayer of todayPrayers) {
+        if (prayer.date > now) {
+          setNextPrayer(prayer);
 
+          const diff = prayer.date - now;
+          const h = Math.floor(diff / 3600000);
+          const m = Math.floor((diff % 3600000) / 60000);
+          const s = Math.floor((diff % 60000) / 1000);
+
+          setCountdown(
+            `${h.toString().padStart(2, "0")}:${m
+              .toString()
+              .padStart(2, "0")}:${s.toString().padStart(2, "0")}`
+          );
+          found = true;
+          break;
+        }
+      }
+
+      if (!found) {
+        const fajr = todayPrayers[0];
+        const tomorrowFajr = new Date(fajr.date);
+        tomorrowFajr.setDate(tomorrowFajr.getDate() + 1);
+
+        setNextPrayer({ ...fajr, date: tomorrowFajr });
+
+        const diff = tomorrowFajr - now;
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+
+        setCountdown(
+          `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s
+            .toString()
+            .padStart(2, "0")}`
+        );
+      }
+    };
+
+    updateNextPrayer();
+    const timer = setInterval(updateNextPrayer, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [formattedPrayerTimes]);
 
   return (
     <section
@@ -92,7 +156,23 @@ const HomeDailyHighlights = () => {
                   </span>
                 </div>
 
-                {nextPrayer && (
+                {prayerError ? (
+                  <div className="py-4">
+                    <p className="text-emerald-100/60 text-sm mb-4">
+                      فشل تحميل المواقيت
+                    </p>
+                    <button
+                      onClick={() =>
+                        dispatch(
+                          fetchPrayerTimesAsync({ lat: 30.0444, lon: 31.2357 })
+                        )
+                      }
+                      className="px-4 py-1.5 bg-white/10 hover:bg-white/20 rounded-full text-xs transition-colors"
+                    >
+                      إعادة المحاولة
+                    </button>
+                  </div>
+                ) : nextPrayer ? (
                   <>
                     <h3 className="text-5xl md:text-6xl font-bold mb-4 font-quran">
                       {nextPrayer.name}
@@ -104,6 +184,10 @@ const HomeDailyHighlights = () => {
                       الوقت المتبقي لرفع أذان {nextPrayer.name}
                     </p>
                   </>
+                ) : (
+                  <div className="py-8">
+                    <div className="w-12 h-12 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
+                  </div>
                 )}
               </div>
 
@@ -142,13 +226,16 @@ const HomeDailyHighlights = () => {
                   </span>
                   <p className="text-2xl md:text-3xl font-quran text-emerald-950 leading-relaxed font-bold relative z-10">
                     {(() => {
-                      const text = dailyHadith.hadithArabic || dailyHadith.text || '';
-                      return text.length > 150 ? text.substring(0, 150) + "..." : text;
+                      const text =
+                        dailyHadith.hadithArabic || dailyHadith.text || "";
+                      return text.length > 150
+                        ? text.substring(0, 150) + "..."
+                        : text;
                     })()}
                   </p>
                 </div>
               )}
-              {loading && !dailyHadith && (
+              {hadithLoading && !dailyHadith && (
                 <div className="flex items-center justify-center py-8">
                   <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
                 </div>
