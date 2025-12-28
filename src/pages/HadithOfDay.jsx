@@ -1,5 +1,4 @@
-import { useState } from "react";
-import hadithData from "../assets/hadithData.json";
+import { useEffect, useState } from "react";
 import {
   BookOpen,
   User,
@@ -9,50 +8,104 @@ import {
   AlertCircle,
   HelpCircle,
 } from "lucide-react";
-
-const getDailyHadith = () => {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 0);
-  const diff = now - start;
-  const oneDay = 1000 * 60 * 60 * 24;
-  const dayOfYear = Math.floor(diff / oneDay);
-
-  const index = dayOfYear % hadithData.length;
-  return hadithData[index];
-};
+import { useDispatch, useSelector } from "react-redux";
+import { getAllHadithAsync } from "../redux/slices/hadthSlice";
 
 const HadithOfDay = () => {
-  const [dailyHadith] = useState(getDailyHadith);
+  const dispatch = useDispatch();
+  const { hadiths, loading, error } = useSelector((state) => state.hadith);
+  const [dailyHadith, setDailyHadith] = useState(null);
+
+  useEffect(() => {
+    dispatch(getAllHadithAsync());
+  }, [dispatch]);
+
+  useEffect(() => {
+    console.log('Hadiths data:', hadiths);
+    
+    if (hadiths && hadiths.hadiths && hadiths.hadiths.data && hadiths.hadiths.data.length > 0) {
+      const now = new Date();
+      const start = new Date(now.getFullYear(), 0, 0);
+      const diff = now - start;
+      const oneDay = 1000 * 60 * 60 * 24;
+      const dayOfYear = Math.floor(diff / oneDay);
+
+      const hadithsArray = hadiths.hadiths.data;
+      const index = dayOfYear % hadithsArray.length;
+      const selectedHadith = hadithsArray[index];
+      
+      console.log('Selected hadith:', selectedHadith);
+      console.log('Day of year:', dayOfYear, 'Index:', index);
+      
+      setDailyHadith(selectedHadith);
+    }
+  }, [hadiths]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#fcfdfb] flex items-center justify-center font-amiri" dir="rtl">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-emerald-800 text-xl">جاري تحميل حديث اليوم...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#fcfdfb] flex items-center justify-center font-amiri" dir="rtl">
+        <div className="text-center text-rose-600">
+          <AlertCircle size={48} className="mx-auto mb-4" />
+          <p className="text-xl">حدث خطأ في تحميل الحديث</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!dailyHadith) return null;
 
+  const translateGrade = (grade) => {
+    if (!grade) return '';
+    const gradeText = grade.toLowerCase();
+    
+    if (gradeText.includes('sahih')) return 'صحيح';
+    if (gradeText.includes('hasan')) return 'حسن';
+    if (gradeText.includes('daif')) return 'ضعيف';
+    if (gradeText.includes('maudu')) return 'موضوع';
+    
+    return grade;
+  };
+
   const getGradeStyles = (grade) => {
-    switch (grade) {
-      case "صحيح":
-        return {
-          bg: "bg-emerald-100",
-          text: "text-emerald-700",
-          border: "border-emerald-200",
-          icon: <CheckCircle2 size={18} />,
-        };
-      case "حسن":
-        return {
-          bg: "bg-amber-100",
-          text: "text-amber-700",
-          border: "border-amber-200",
-          icon: <HelpCircle size={18} />,
-        };
-      default:
-        return {
-          bg: "bg-rose-100",
-          text: "text-rose-700",
-          border: "border-rose-200",
-          icon: <AlertCircle size={18} />,
-        };
+    const gradeText = grade?.toLowerCase() || '';
+    
+    if (gradeText.includes('صحيح') || gradeText.includes('sahih')) {
+      return {
+        bg: "bg-emerald-100",
+        text: "text-emerald-700",
+        border: "border-emerald-200",
+        icon: <CheckCircle2 size={18} />,
+      };
+    } else if (gradeText.includes('حسن') || gradeText.includes('hasan')) {
+      return {
+        bg: "bg-amber-100",
+        text: "text-amber-700",
+        border: "border-amber-200",
+        icon: <HelpCircle size={18} />,
+      };
+    } else {
+      return {
+        bg: "bg-rose-100",
+        text: "text-rose-700",
+        border: "border-rose-200",
+        icon: <AlertCircle size={18} />,
+      };
     }
   };
 
-  const gradeStyle = getGradeStyles(dailyHadith.grade);
+  const gradeStyle = getGradeStyles(dailyHadith.status || dailyHadith.grade);
+  const arabicGrade = translateGrade(dailyHadith.status || dailyHadith.grade);
 
   return (
     <div
@@ -80,60 +133,83 @@ const HadithOfDay = () => {
             </div>
 
             <p className="text-3xl md:text-4xl leading-relaxed text-emerald-950 font-quran font-bold mb-8">
-              {dailyHadith.text}
+              {dailyHadith.hadithArabic || dailyHadith.text}
             </p>
 
             <div className="flex flex-wrap items-center justify-center gap-4">
-              <div className="flex items-center gap-2 px-5 py-2 bg-emerald-50 text-emerald-800 rounded-full border border-emerald-100/50 text-sm font-bold">
-                <User size={16} />
-                <span>الراوي: {dailyHadith.narrator}</span>
-              </div>
-              <div
-                className={`flex items-center gap-2 px-5 py-2 ${gradeStyle.bg} ${gradeStyle.text} rounded-full border ${gradeStyle.border} text-sm font-bold`}
-              >
-                {gradeStyle.icon}
-                <span>درجة الحديث: {dailyHadith.grade}</span>
-              </div>
+              {dailyHadith.hadithNarrator && (
+                <div className="flex items-center gap-2 px-5 py-2 bg-emerald-50 text-emerald-800 rounded-full border border-emerald-100/50 text-sm font-bold">
+                  <User size={16} />
+                  <span>الراوي: {dailyHadith.hadithNarrator || dailyHadith.narrator}</span>
+                </div>
+              )}
+              {(dailyHadith.status || dailyHadith.grade) && (
+                <div
+                  className={`flex items-center gap-2 px-5 py-2 ${gradeStyle.bg} ${gradeStyle.text} rounded-full border ${gradeStyle.border} text-sm font-bold`}
+                >
+                  {gradeStyle.icon}
+                  <span>درجة الحديث: {arabicGrade}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
         {/* Detailed Sections Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Explanation */}
-          <div className="bg-white border border-emerald-100/50 p-8 rounded-4xl shadow-[0_10px_30px_rgba(6,95,70,0.03)] hover:shadow-[0_15px_40px_rgba(6,95,70,0.06)] transition-all">
-            <div className="flex items-center gap-3 mb-6 text-emerald-700">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
-                <BookOpen size={20} />
+        {(dailyHadith.explanation || dailyHadith.story || dailyHadith.englishExplanation) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Explanation */}
+            {(dailyHadith.explanation || dailyHadith.englishExplanation) && (
+              <div className="bg-white border border-emerald-100/50 p-8 rounded-4xl shadow-[0_10px_30px_rgba(6,95,70,0.03)] hover:shadow-[0_15px_40px_rgba(6,95,70,0.06)] transition-all">
+                <div className="flex items-center gap-3 mb-6 text-emerald-700">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+                    <BookOpen size={20} />
+                  </div>
+                  <h3 className="text-2xl font-bold font-quran">تفسير الحديث</h3>
+                </div>
+                <p className="text-emerald-900/80 leading-loose text-lg font-medium">
+                  {dailyHadith.explanation || dailyHadith.englishExplanation}
+                </p>
               </div>
-              <h3 className="text-2xl font-bold font-quran">تفسير الحديث</h3>
-            </div>
-            <p className="text-emerald-900/80 leading-loose text-lg font-medium">
-              {dailyHadith.explanation}
-            </p>
-          </div>
+            )}
 
-          {/* Story/Context */}
-          <div className="bg-white border border-emerald-100/50 p-8 rounded-4xl shadow-[0_10px_30px_rgba(6,95,70,0.03)] hover:shadow-[0_15px_40px_rgba(6,95,70,0.06)] transition-all">
-            <div className="flex items-center gap-3 mb-6 text-emerald-700">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
-                <Info size={20} />
+            {/* Story/Context */}
+            {dailyHadith.story && (
+              <div className="bg-white border border-emerald-100/50 p-8 rounded-4xl shadow-[0_10px_30px_rgba(6,95,70,0.03)] hover:shadow-[0_15px_40px_rgba(6,95,70,0.06)] transition-all">
+                <div className="flex items-center gap-3 mb-6 text-emerald-700">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+                    <Info size={20} />
+                  </div>
+                  <h3 className="text-2xl font-bold font-quran">قصة الحديث</h3>
+                </div>
+                <p className="text-emerald-900/80 leading-loose text-lg font-medium">
+                  {dailyHadith.story}
+                </p>
               </div>
-              <h3 className="text-2xl font-bold font-quran">قصة الحديث</h3>
-            </div>
-            <p className="text-emerald-900/80 leading-loose text-lg font-medium">
-              {dailyHadith.story}
-            </p>
+            )}
           </div>
-        </div>
+        )}
 
         {/* Source Footer */}
-        <div className="mt-12 text-center">
-          <div className="inline-flex items-center gap-3 px-8 py-3 bg-white border border-emerald-100 rounded-2xl text-emerald-800/60 shadow-sm text-sm font-bold">
-            <BookOpen size={16} />
-            <span>المصدر: {dailyHadith.source}</span>
+        {(dailyHadith.source || dailyHadith.bookSlug) && (
+          <div className="mt-12 text-center">
+            <div className="inline-flex items-center gap-3 px-8 py-3 bg-white border border-emerald-100 rounded-2xl text-emerald-800/60 shadow-sm text-sm font-bold">
+              <BookOpen size={16} />
+              <span>المصدر: {
+                dailyHadith.source || 
+                (dailyHadith.bookSlug === 'sahih-bukhari' ? 'صحيح البخاري' :
+                 dailyHadith.bookSlug === 'sahih-muslim' ? 'صحيح مسلم' :
+                 dailyHadith.bookSlug === 'sunan-abu-dawood' ? 'سنن أبي داود' :
+                 dailyHadith.bookSlug === 'jami-at-tirmidhi' ? 'جامع الترمذي' :
+                 dailyHadith.bookSlug === 'sunan-an-nasai' ? 'سنن النسائي' :
+                 dailyHadith.bookSlug === 'sunan-ibn-majah' ? 'سنن ابن ماجه' :
+                 dailyHadith.bookSlug === 'muwatta-malik' ? 'موطأ مالك' :
+                 dailyHadith.bookSlug === 'musnad-ahmad' ? 'مسند أحمد' :
+                 dailyHadith.bookSlug)
+              }</span>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Decorative elements */}
         <div className="fixed top-0 left-0 p-8 opacity-[0.02] pointer-events-none hidden lg:block">

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import {
   Clock,
   ScrollText,
@@ -7,22 +8,33 @@ import {
   ChevronLeft,
   BellRing,
 } from "lucide-react";
-import hadithData from "../../../assets/hadithData.json";
 import prayerData from "../../../assets/prayerTimes.json";
-
-const getDailyHadith = () => {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 0);
-  const diff = now - start;
-  const oneDay = 1000 * 60 * 60 * 24;
-  const dayOfYear = Math.floor(diff / oneDay);
-  return hadithData[dayOfYear % hadithData.length];
-};
+import { getAllHadithAsync } from "../../../redux/slices/hadthSlice";
 
 const HomeDailyHighlights = () => {
-  const [dailyHadith] = useState(getDailyHadith);
+  const dispatch = useDispatch();
+  const { hadiths, loading } = useSelector((state) => state.hadith);
+  const [dailyHadith, setDailyHadith] = useState(null);
   const [nextPrayer, setNextPrayer] = useState(null);
   const [countdown, setCountdown] = useState("");
+
+  useEffect(() => {
+    dispatch(getAllHadithAsync());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (hadiths && hadiths.hadiths && hadiths.hadiths.data && hadiths.hadiths.data.length > 0) {
+      const now = new Date();
+      const start = new Date(now.getFullYear(), 0, 0);
+      const diff = now - start;
+      const oneDay = 1000 * 60 * 60 * 24;
+      const dayOfYear = Math.floor(diff / oneDay);
+
+      const hadithsArray = hadiths.hadiths.data;
+      const index = dayOfYear % hadithsArray.length;
+      setDailyHadith(hadithsArray[index]);
+    }
+  }, [hadiths]);
 
   useEffect(() => {
     // 2. Setup Prayer Countdown
@@ -129,23 +141,33 @@ const HomeDailyHighlights = () => {
                     "
                   </span>
                   <p className="text-2xl md:text-3xl font-quran text-emerald-950 leading-relaxed font-bold relative z-10">
-                    {dailyHadith.text.length > 150
-                      ? dailyHadith.text.substring(0, 150) + "..."
-                      : dailyHadith.text}
+                    {(() => {
+                      const text = dailyHadith.hadithArabic || dailyHadith.text || '';
+                      return text.length > 150 ? text.substring(0, 150) + "..." : text;
+                    })()}
                   </p>
+                </div>
+              )}
+              {loading && !dailyHadith && (
+                <div className="flex items-center justify-center py-8">
+                  <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
                 </div>
               )}
             </div>
 
             <div className="mt-10 flex items-center justify-between border-t border-emerald-50 pt-8">
-              <div className="flex flex-col">
-                <span className="text-emerald-800/40 text-sm font-medium">
-                  الراوي
-                </span>
-                <span className="text-emerald-900 font-bold">
-                  {dailyHadith?.narrator}
-                </span>
-              </div>
+              {dailyHadith?.hadithNarrator || dailyHadith?.narrator ? (
+                <div className="flex flex-col">
+                  <span className="text-emerald-800/40 text-sm font-medium">
+                    الراوي
+                  </span>
+                  <span className="text-emerald-900 font-bold">
+                    {dailyHadith?.hadithNarrator || dailyHadith?.narrator}
+                  </span>
+                </div>
+              ) : (
+                <div></div>
+              )}
               <Link
                 to="/hadith"
                 className="flex items-center gap-2 px-6 py-3 bg-emerald-50 text-emerald-700 rounded-2xl font-bold hover:bg-emerald-100 transition-all active:scale-95"
