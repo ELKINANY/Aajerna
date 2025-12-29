@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { getPrayerTimes } from "../../service/prayer_TimesAPI";
+import { getPrayerTimes } from "../../service/prayer_timesAPI";
 
 export const fetchPrayerTimesAsync = createAsyncThunk(
   "prayerTimes/fetchPrayerTimes",
