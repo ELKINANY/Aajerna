@@ -6,7 +6,7 @@ import ScrollToTop from "./components/ScrollToTop";
 
 const App = () => {
     return (
-    <BrowserRouter basename="/Aajerna">
+    <BrowserRouter>
       <ScrollToTop />
       <Navbar />
       <AppRoutes />
