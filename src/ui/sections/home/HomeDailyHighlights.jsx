@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { ScrollText, Sparkles, ChevronLeft, BellRing } from "lucide-react";
 import { getAllHadithAsync } from "../../../redux/slices/hadthSlice";
 import { fetchPrayerTimesAsync } from "../../../redux/slices/prayerTimesSlice";
+import { formatTime12 } from "../../../utils/formatTime";
 
 const prayerNamesAr = {
   Fajr: "الفجر",
@@ -76,19 +77,23 @@ const HomeDailyHighlights = () => {
     return items.map((key) => ({
       id: key,
       name: prayerNamesAr[key],
-      time: timings[key],
+      time: formatTime12(timings[key]),
     }));
   }, [prayerTimes]);
 
   useEffect(() => {
-    if (formattedPrayerTimes.length === 0) return;
+    const timings = prayerTimes?.data?.timings || prayerTimes?.timings;
+    if (!timings || formattedPrayerTimes.length === 0) return;
+
+    const items = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
 
     const updateNextPrayer = () => {
       const now = new Date();
       let found = false;
 
-      const todayPrayers = formattedPrayerTimes.map((p) => {
-        const [hours, minutes] = p.time.split(":").map(Number);
+      const todayPrayers = formattedPrayerTimes.map((p, index) => {
+        const originalTime = timings[items[index]];
+        const [hours, minutes] = originalTime.split(":").map(Number);
         const prayerDate = new Date();
         prayerDate.setHours(hours, minutes, 0, 0);
         return { ...p, date: prayerDate };
@@ -136,7 +141,7 @@ const HomeDailyHighlights = () => {
     updateNextPrayer();
     const timer = setInterval(updateNextPrayer, 1000);
     return () => clearInterval(timer);
-  }, [formattedPrayerTimes]);
+  }, [formattedPrayerTimes, prayerTimes]);
 
   return (
     <section

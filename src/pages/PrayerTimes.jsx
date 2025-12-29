@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import backgroundImage from "../assets/images/صلاة-المسلمين.jpg";
 import { fetchPrayerTimesAsync } from "../redux/slices/prayerTimesSlice";
+import { formatTime12 } from "../utils/formatTime";
 
 const iconMap = {
   Fajr: <Sunrise size={24} />,
@@ -50,7 +51,7 @@ const PrayerTimes = () => {
     return items.map((key) => ({
       id: key,
       name: prayerNamesAr[key],
-      time: timings[key],
+      time: formatTime12(timings[key]),
       icon: iconMap[key],
     }));
   }, [prayerTimes]);
@@ -78,15 +79,19 @@ const PrayerTimes = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    if (formattedPrayerTimes.length === 0) return;
+    const timings = prayerTimes?.data?.timings || prayerTimes?.timings;
+    if (!timings || formattedPrayerTimes.length === 0) return;
+
+    const items = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
 
     const updateNextPrayer = () => {
       const now = new Date();
       let found = false;
 
-      // Create full date objects for each prayer time today
-      const todayPrayers = formattedPrayerTimes.map((p) => {
-        const [hours, minutes] = p.time.split(":").map(Number);
+      // Create full date objects for each prayer time today using original 24h times
+      const todayPrayers = formattedPrayerTimes.map((p, index) => {
+        const originalTime = timings[items[index]];
+        const [hours, minutes] = originalTime.split(":").map(Number);
         const prayerDate = new Date();
         prayerDate.setHours(hours, minutes, 0, 0);
         return { ...p, date: prayerDate };
@@ -135,7 +140,7 @@ const PrayerTimes = () => {
     updateNextPrayer();
     const timer = setInterval(updateNextPrayer, 1000);
     return () => clearInterval(timer);
-  }, [formattedPrayerTimes]);
+  }, [formattedPrayerTimes, prayerTimes]);
 
   const dateInfo = prayerTimes?.data?.date || prayerTimes?.date;
   const hijriDate = dateInfo?.hijri;
@@ -143,7 +148,7 @@ const PrayerTimes = () => {
     ? `${hijriDate.day} ${hijriDate.month.ar} ${hijriDate.year} هـ`
     : "جاري التحميل...";
 
-  if ((loading || !prayerTimes) && !error) return <Loader />
+  if ((loading || !prayerTimes) && !error) return <Loader />;
 
   if (error) {
     return (
