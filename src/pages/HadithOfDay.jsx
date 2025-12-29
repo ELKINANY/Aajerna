@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   BookOpen,
   User,
@@ -9,38 +9,16 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { getAllHadithAsync } from "../redux/slices/hadthSlice";
+import { getDailyHadithAsync } from "../redux/slices/hadthSlice";
 import Loader from "../ui/Loader";
 
 const HadithOfDay = () => {
   const dispatch = useDispatch();
-  const { hadiths, loading } = useSelector((state) => state.hadith);
-  const [dailyHadith, setDailyHadith] = useState(null);
+  const { dailyHadith, loading } = useSelector((state) => state.hadith);
 
   useEffect(() => {
-    dispatch(getAllHadithAsync());
+    dispatch(getDailyHadithAsync());
   }, [dispatch]);
-
-  useEffect(() => {
-    if (
-      hadiths &&
-      hadiths.hadiths &&
-      hadiths.hadiths.data &&
-      hadiths.hadiths.data.length > 0
-    ) {
-      const now = new Date();
-      const start = new Date(now.getFullYear(), 0, 0);
-      const diff = now - start;
-      const oneDay = 1000 * 60 * 60 * 24;
-      const dayOfYear = Math.floor(diff / oneDay);
-
-      const hadithsArray = hadiths.hadiths.data;
-      const index = dayOfYear % hadithsArray.length;
-      const selectedHadith = hadithsArray[index];
-
-      setDailyHadith(selectedHadith);
-    }
-  }, [hadiths]);
 
   if (loading) {
     return <Loader />;

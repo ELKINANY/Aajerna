@@ -1,23 +1,38 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { getAllHadiths } from "../../service/hadithAPI";
 
+import { getDailyHadithIndexInfo } from "../../utils/hadithDateUtils";
+
 export const getAllHadithAsync = createAsyncThunk(
-  "quran/getAllHadith",
+  "hadith/getAllHadith",
   async () => {
     const response = await getAllHadiths();
     return response.data;
   }
 );
 
+export const getDailyHadithAsync = createAsyncThunk(
+  "hadith/getDailyHadith",
+  async () => {
+    const { targetPage, indexInPage } = getDailyHadithIndexInfo();
+    const response = await getAllHadiths(targetPage);
+
+    // The API might return data in a slightly nested structure
+    const pageData = response.data.hadiths.data;
+    const dailyHadith = pageData[indexInPage] || pageData[0];
+
+    return dailyHadith;
+  }
+);
 
 const initialState = {
   hadiths: [],
-  random: [],
+  dailyHadith: null,
   loading: false,
   error: null,
 };
 
-const quranSlice = createSlice({
+const hadithSlice = createSlice({
   name: "hadith",
   initialState,
   reducers: {},
@@ -33,8 +48,19 @@ const quranSlice = createSlice({
       .addCase(getAllHadithAsync.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
+      })
+      .addCase(getDailyHadithAsync.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getDailyHadithAsync.fulfilled, (state, action) => {
+        state.dailyHadith = action.payload;
+        state.loading = false;
+      })
+      .addCase(getDailyHadithAsync.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
       });
   },
 });
 
-export default quranSlice.reducer;
+export default hadithSlice.reducer;

@@ -3,7 +3,7 @@ import logo from "../assets/Logos/App_Logo.png";
 
 const navigation = [
   { name: "القرآن الكريم", href: "/quran" },
-  { name: "الأحاديث", href: "/hadith" },
+  { name: "حديث اليوم", href: "/hadith" },
   { name: "مواقيت الصلاة", href: "/prayer-times" },
   { name: "القبلة", href: "/qibla" },
   { name: "الأذكار", href: "/azkar" },
