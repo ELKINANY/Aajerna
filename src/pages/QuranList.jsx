@@ -59,7 +59,7 @@ const QuranList = () => {
                   </h2>
                   <div className="flex items-center gap-3 text-emerald-600 text-sm">
                     <span className="bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
-                      {surah.revelationPlace === "Meccan" ? "مكية" : "مدنية"}
+                      {surah.revelationPlace === "Mecca" ? "مكية" : "مدنية"}
                     </span>
                     <span className="flex items-center gap-1">
                       <span>{surah.totalAyah}</span>
