@@ -264,7 +264,7 @@ const HomeDailyHighlights = () => {
                 to="/hadith"
                 className="flex items-center gap-2 px-6 py-3 bg-emerald-50 text-emerald-700 rounded-2xl font-bold hover:bg-emerald-100 transition-all active:scale-95"
               >
-                <span>قراءة الشرح</span>
+                <span>قراءة الحديث</span>
                 <ChevronLeft size={18} />
               </Link>
             </div>
