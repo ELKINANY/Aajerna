@@ -44,8 +44,8 @@ const Qibla = () => {
   }, []);
 
   /* ===============================
-     📍 Location + Qibla API
-     =============================== */
+    📍 Location + Qibla API
+    =============================== */
   const handleLocate = async () => {
     setIsLocating(true);
 
