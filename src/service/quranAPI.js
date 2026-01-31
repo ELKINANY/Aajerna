@@ -1,4 +1,5 @@
 import axios from "axios";
+import reciters from "../assets/reciters/_arabic.json";
 
 // All Surahs
 const API_URL = "https://quranapi.pages.dev/api";
@@ -23,11 +24,15 @@ export const getSingleAyah = (surahNumber, ayahNumber) => {
 // Reciters
 // "https://quranapi.pages.dev/api/reciters.json";
 export const getReciters = () => {
-  return axios.get(`${API_URL}/reciters.json`);
+  return reciters.reciters;
 }
 
 // Audio 
-// https://quranapi.pages.dev/api/audio/2.json
-export const getAudio = (surahNumber) => {
-  return axios.get(`${API_URL}/audio/${surahNumber}.json`)
+export const getAudio = (surahNumber, reciterIndex) => {
+  if(surahNumber < 10) {
+    return `${reciters.reciters[reciterIndex].server}/00${surahNumber}.mp3`
+  }else if(surahNumber < 100) {
+    return `${reciters.reciters[reciterIndex].server}/0${surahNumber}.mp3`
+  }
+  return `${reciters.reciters[reciterIndex].server}/${surahNumber}.mp3`
 }

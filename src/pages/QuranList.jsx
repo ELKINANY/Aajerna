@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { getAllSurahsAsync } from "../redux/slices/quranSlice";
 import Loader from "../ui/Loader";
+
 const QuranList = () => {
   const dispatch = useDispatch();
   const { surahs, loading } = useSelector((state) => state.quran);
@@ -25,7 +26,7 @@ const QuranList = () => {
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   if (loading && surahs.length === 0) {
-    return <Loader />
+    return <Loader />;
   }
 
   return (
@@ -45,49 +46,49 @@ const QuranList = () => {
           {currentItems.map((surah, index) => {
             const surahNumber = indexOfFirstItem + index + 1;
             return (
-            <div
-              key={surahNumber}
-              className="bg-white rounded-xl shadow-sm border border-emerald-100 p-6 flex flex-col sm:flex-row items-center justify-between hover:shadow-md transition-shadow duration-300 group"
-            >
-              <div className="flex items-center gap-6 w-full sm:w-auto">
-                <div className="shrink-0 w-14 h-14 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-700 font-bold text-xl group-hover:bg-emerald-100 transition-colors duration-300">
-                  {surahNumber}
-                </div>
-                <div className="text-right">
-                  <h2 className="text-2xl font-bold text-emerald-900 mb-1">
-                    سورة {surah.surahNameArabic}
-                  </h2>
-                  <div className="flex items-center gap-3 text-emerald-600 text-sm">
-                    <span className="bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
-                      {surah.revelationPlace === "Mecca" ? "مكية" : "مدنية"}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <span>{surah.totalAyah}</span>
-                      <span>{surah.totalAyah > 10 ? "آية" : "آيات"}</span>
-                    </span>
+              <div
+                key={surahNumber}
+                className="bg-white rounded-xl shadow-sm border border-emerald-100 p-6 flex flex-col sm:flex-row items-center justify-between hover:shadow-md transition-shadow duration-300 group"
+              >
+                <div className="flex items-center gap-6 w-full sm:w-auto">
+                  <div className="shrink-0 w-14 h-14 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-700 font-bold text-xl group-hover:bg-emerald-100 transition-colors duration-300">
+                    {surahNumber}
+                  </div>
+                  <div className="text-right">
+                    <h2 className="text-2xl font-bold text-emerald-900 mb-1">
+                      سورة {surah.surahNameArabic}
+                    </h2>
+                    <div className="flex items-center gap-3 text-emerald-600 text-sm">
+                      <span className="bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
+                        {surah.revelationPlace === "Mecca" ? "مكية" : "مدنية"}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span>{surah.totalAyah}</span>
+                        <span>{surah.totalAyah > 10 ? "آية" : "آيات"}</span>
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex items-center gap-4 mt-6 sm:mt-0 w-full sm:w-auto">
-                <Link
-                  to={`/reciters/${surahNumber}`}
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors duration-300 font-medium"
-                >
-                  <Play size={18} fill="currentColor" />
-                  <span>استمع</span>
-                </Link>
-                <Link
-                  to={`/quran/${surahNumber}`}
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 border-2 border-emerald-700 text-emerald-700 rounded-lg hover:bg-emerald-50 transition-colors duration-300 font-medium"
-                >
-                  <BookOpen size={18} />
-                  <span>اقرأ</span>
-                </Link>
+                <div className="flex items-center gap-4 mt-6 sm:mt-0 w-full sm:w-auto">
+                  <Link
+                    to={`/reciters/${surahNumber}`}
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors duration-300 font-medium"
+                  >
+                    <Play size={18} fill="currentColor" />
+                    <span>استمع</span>
+                  </Link>
+                  <Link
+                    to={`/quran/${surahNumber}`}
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 border-2 border-emerald-700 text-emerald-700 rounded-lg hover:bg-emerald-50 transition-colors duration-300 font-medium"
+                  >
+                    <BookOpen size={18} />
+                    <span>اقرأ</span>
+                  </Link>
+                </div>
               </div>
-            </div>
-          )}
-          )}
+            );
+          })}
         </div>
 
         {/* Pagination UI */}

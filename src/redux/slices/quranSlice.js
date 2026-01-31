@@ -4,7 +4,6 @@ import {
   getSingleSurah,
   getSingleAyah,
   getReciters,
-  getAudio,
 } from "../../service/quranAPI";
 
 export const getAllSurahsAsync = createAsyncThunk(
@@ -31,28 +30,11 @@ export const getSingleAyahAsync = createAsyncThunk(
   }
 );
 
-export const getRecitersAsync = createAsyncThunk(
-  "quran/getReciters",
-  async () => {
-    const response = await getReciters();
-    return response.data;
-  }
-);
-
-export const getAudioAsync = createAsyncThunk(
-  "quran/getAudio",
-  async()=> {
-    const response = await getAudio();
-    return response.data;
-  }
-)
-
 const initialState = {
   surahs: [],
   surah: {},
   ayah: {},
-  reciters: [],
-  audio:{},
+  reciters: getReciters(),
   loading: false,
   error: null,
 };
@@ -73,14 +55,6 @@ const quranSlice = createSlice({
       })
       .addCase(getSingleAyahAsync.fulfilled, (state, action) => {
         state.ayah = action.payload;
-        state.loading = false;
-      })
-      .addCase(getRecitersAsync.fulfilled, (state, action) => {
-        state.reciters = action.payload;
-        state.loading = false;
-      })
-      .addCase(getAudioAsync.fulfilled , (state , action ) => {
-        state.audio = action.payload;
         state.loading = false;
       })
       .addMatcher(

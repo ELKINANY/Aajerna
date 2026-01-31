@@ -1,73 +1,45 @@
-import { Play, List, X, Pause } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { Play, List, X, Pause, ChevronRight, ChevronLeft } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { useSelector } from "react-redux";
 import { Link, useParams } from "react-router-dom";
-import {
-  getRecitersAsync,
-  getSingleSurahAsync,
-} from "../redux/slices/quranSlice";
-import axios from "axios";
 import Loader from "../ui/Loader";
-
-const reciterNamesArabic = {
-  "Mishary Rashid Al Afasy": "مشاري بن راشد العفاسي",
-  "Abu Bakr Al Shatri": "أبو بكر الشاطري",
-  "Nasser Al Qatami": "ناصر القطامي",
-  "Yasser Al Dosari": "ياسر الدوسري",
-  "Hani Ar Rifai": "هاني الرفاعي",
-};
+import { getAudio } from "../service/quranAPI";
 
 const Reciters = () => {
-  const dispatch = useDispatch();
-  const { surahId } = useParams();
+  const {surahId} = useParams();
   const { reciters, surah, loading } = useSelector((state) => state.quran);
   const [selectedReciter, setSelectedReciter] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioUrl, setAudioUrl] = useState(null);
   const audioRef = useRef(null);
 
-  useEffect(() => {
-    dispatch(getRecitersAsync());
-    if (surahId) {
-      dispatch(getSingleSurahAsync(surahId));
-    }
-  }, [dispatch, surahId]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [recitersPerPage] = useState(10);
 
-  const recitersArray = reciters
-    ? Object.entries(reciters).map(([id, name]) => ({
-        id,
-        name: reciterNamesArabic[name] || name,
-        englishName: name,
-      }))
-    : [];
+  const indexOfLastReciter = currentPage * recitersPerPage;
+  const indexOfFirstReciter = indexOfLastReciter - recitersPerPage;
+  const currentReciters = reciters.slice(indexOfFirstReciter, indexOfLastReciter);
+  const totalPages = Math.ceil(reciters.length / recitersPerPage);
 
-  const handlePlayClick = async (reciter) => {
-    if (!surahId) {
-      alert("الرجاء اختيار سورة أولاً من قائمة السور");
-      return;
-    }
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-    try {
-      const response = await axios.get(
-        `https://quranapi.pages.dev/api/audio/${surahId}.json`
-      );
-      const audioData = response.data[reciter.id];
+  const handlePlayClick = (reciter) => {
+  if (!surahId) return;
 
-      if (audioData && audioData.url) {
-        setSelectedReciter(reciter);
-        setAudioUrl(audioData.url);
+  const url = getAudio(surahId, reciter.id - 1);
+  setSelectedReciter(reciter);
+  setAudioUrl(url);
+  setIsPlaying(true);
+};
 
-        if (audioRef.current) {
-          audioRef.current.src = audioData.url;
-          audioRef.current.play();
-          setIsPlaying(true);
-        }
-      }
-    } catch (error) {
-      console.error("Error loading audio:", error);
-      alert("حدث خطأ في تحميل الصوت");
-    }
-  };
+useEffect(() => {
+  if (audioRef.current && audioUrl) {
+    audioRef.current.load();
+    audioRef.current
+      .play()
+      .catch((err) => console.log("Play error:", err));
+  }
+}, [audioUrl]);
 
   const togglePlayPause = () => {
     if (audioRef.current) {
@@ -84,7 +56,7 @@ const Reciters = () => {
     setIsPlaying(false);
   };
 
-  if (loading && recitersArray.length === 0) {
+  if (loading && reciters.length === 0) {
     return <Loader />
   }
 
@@ -103,7 +75,7 @@ const Reciters = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {recitersArray.map((reciter) => (
+          {currentReciters.map((reciter) => (
             <div
               key={reciter.id}
               className="bg-white rounded-2xl shadow-sm border border-emerald-100 p-8 flex items-center justify-between hover:shadow-md transition-all duration-300 group"
@@ -141,12 +113,71 @@ const Reciters = () => {
             </div>
           ))}
         </div>
+        
+        {/* Pagination UI */}
+        {reciters.length > recitersPerPage && (
+          <div className="mt-12 flex items-center justify-center gap-2">
+            <button
+              onClick={() => paginate(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className={`p-2 rounded-lg border transition-all duration-300 ${
+                currentPage === totalPages
+                  ? "text-gray-300 border-gray-100 cursor-not-allowed"
+                  : "text-emerald-700 border-emerald-200 hover:bg-emerald-50"
+              }`}
+            >
+              <ChevronRight size={20} />
+            </button>
 
-        <div className="p-4 rounded-2xl border border-emerald-100 bg-emerald-50 mt-4">
-          <div className="text-center text-emerald-600 text-base mt-4 font-arabic">
-            بإذن الله في المستقبل سيتم إضافة المزيد من القراء
+            <div className="flex gap-2">
+              {[...Array(totalPages)].map((_, index) => {
+                const pageNum = index + 1;
+                // Only show a limited range of page numbers
+                if (
+                  pageNum === 1 ||
+                  pageNum === totalPages ||
+                  (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                ) {
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => paginate(pageNum)}
+                      className={`w-10 h-10 rounded-lg border transition-all duration-300 font-medium ${
+                        currentPage === pageNum
+                          ? "bg-emerald-700 text-white border-emerald-700"
+                          : "text-emerald-700 border-emerald-200 hover:bg-emerald-50"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                } else if (
+                  pageNum === currentPage - 2 ||
+                  pageNum === currentPage + 2
+                ) {
+                  return (
+                    <span key={pageNum} className="text-emerald-300">
+                      ...
+                    </span>
+                  );
+                }
+                return null;
+              })}
+            </div>
+
+            <button
+              onClick={() => paginate(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={`p-2 rounded-lg border transition-all duration-300 ${
+                currentPage === 1
+                  ? "text-gray-300 border-gray-100 cursor-not-allowed"
+                  : "text-emerald-700 border-emerald-200 hover:bg-emerald-50"
+              }`}
+            >
+              <ChevronLeft size={20} />
+            </button>
           </div>
-        </div>
+        )}
 
         {/* Audio Player */}
         {audioUrl && (
@@ -191,7 +222,7 @@ const Reciters = () => {
             </div>
           </div>
         )}
-        <audio ref={audioRef} onEnded={handleAudioEnded} />
+        <audio ref={audioRef} src={audioUrl} onEnded={handleAudioEnded} />
       </div>
     </div>
   );
