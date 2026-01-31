@@ -116,7 +116,7 @@ useEffect(() => {
         
         {/* Pagination UI */}
         {reciters.length > recitersPerPage && (
-          <div className="mt-12 flex items-center justify-center gap-2">
+          <div className="mt-12 flex items-center justify-center gap-1">
             <button
               onClick={() => paginate(currentPage + 1)}
               disabled={currentPage === totalPages}
